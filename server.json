@@ -1,27 +1,23 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.seotrader/speedcontent-social",
+  "title": "SpeedContent Social",
   "description": "Generate platform-native social posts that are humanized, AI-detection scored and illustrated.",
   "repository": {
     "url": "https://github.com/seotrader/speedcontent-social-mcp",
     "source": "github"
   },
   "version": "0.1.0",
-  "packages": [
+  "remotes": [
     {
-      "registryType": "npm",
-      "identifier": "speedcontent-social-mcp",
-      "version": "0.1.0",
-      "transport": {
-        "type": "stdio"
-      },
-      "environmentVariables": [
+      "type": "streamable-http",
+      "url": "https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp",
+      "headers": [
         {
-          "name": "SPEEDCONTENT_API_KEY",
-          "description": "SpeedContent API key, created at https://app.speedcontent.online/APIKeys",
+          "name": "X-API-Key",
+          "description": "SpeedContent API key, created free at https://app.speedcontent.online/APIKeys",
           "isRequired": true,
-          "isSecret": true,
-          "format": "string"
+          "isSecret": true
         }
       ]
     }

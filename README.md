@@ -4,9 +4,11 @@ Give an AI agent the ability to write social media posts that don't read like AI
 
 An MCP server for the [SpeedContent](https://speedcontent.online) Social Post API. Agents can draft posts for seven platforms; each one is written to that platform's conventions, rewritten to read as human-authored, scored against AI detection, and optionally illustrated.
 
+Listed in the official MCP Registry as `io.github.seotrader/speedcontent-social`.
+
 ## Why this and not a plain model call
 
-Any model can write a LinkedIn post. The difference here is what happens after:
+Any model can write a LinkedIn post. The difference is what happens after:
 
 | Step | What it does |
 | --- | --- |
@@ -17,43 +19,42 @@ Any model can write a LinkedIn post. The difference here is what happens after:
 | Re-humanize | Automatic retry if the score comes back too high |
 | Image | Optional, generated to match the post |
 
-The scoring pass is the point. The agent gets told how human the copy reads *before* anything is published.
+The scoring pass is the point. The agent is told how human the copy reads *before* anything is published.
 
 ## Setup
 
-Get an API key at [app.speedcontent.online/APIKeys](https://app.speedcontent.online/APIKeys) — free credits on signup, no card.
+This is a **remote** server — there is nothing to install. Get an API key at [app.speedcontent.online/APIKeys](https://app.speedcontent.online/APIKeys) (free credits on signup, no card), then point your client at the URL.
 
 ### Claude Code
 
 ```bash
-claude mcp add speedcontent-social \
-  --env SPEEDCONTENT_API_KEY=sc_your_key_here \
-  -- npx -y speedcontent-social-mcp
+claude mcp add --transport http speedcontent-social \
+  https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp \
+  --header "X-API-Key: sc_your_key_here"
 ```
 
 ### Claude Desktop, Cursor, and other clients
-
-Add to your MCP config:
 
 ```json
 {
   "mcpServers": {
     "speedcontent-social": {
-      "command": "npx",
-      "args": ["-y", "speedcontent-social-mcp"],
-      "env": {
-        "SPEEDCONTENT_API_KEY": "sc_your_key_here"
+      "url": "https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp",
+      "headers": {
+        "X-API-Key": "sc_your_key_here"
       }
     }
   }
 }
 ```
 
+`Authorization: Bearer sc_...` works too, for clients that prefer it.
+
 ## Tools
 
 ### `generate_social_post`
 
-Writes the post and waits for it. Takes 20–90 seconds and costs credits.
+Starts a job and returns its id. Generation takes 20–90 seconds; collect the result with `check_social_job`. Costs credits.
 
 | Parameter | Default | Notes |
 | --- | --- | --- |
@@ -69,24 +70,34 @@ Writes the post and waits for it. Takes 20–90 seconds and costs credits.
 
 ### `check_social_job`
 
-Looks up a job by id. Only needed if a generation outlived the tool timeout. Free.
+Returns the finished posts, or current progress while the job runs. Free.
 
 ### `list_social_platforms`
 
-Lists platforms with default lengths and emoji policy. Free, no network call.
+Platforms with default lengths and emoji policy. Free, no network call.
 
 ## Credits
 
-Per post: 20 base (up to 200 words), +1 per 10 words beyond 200, +10 for an image, +8 for AI detection. Multiplied by `quantity`. Credits are refunded in full if generation fails.
+Per post: 20 base (up to 200 words), +1 per 10 words beyond 200, +10 for an image, +8 for AI detection. Multiplied by `quantity`. Refunded in full if generation fails.
 
 A 100-word LinkedIn post with an image costs 30 credits.
 
-## Environment
+## What's in this repo
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `SPEEDCONTENT_API_KEY` | Yes | Your key from the dashboard. |
-| `SPEEDCONTENT_BASE_URL` | No | Override the API host. Defaults to production. |
+The live server runs inside the SpeedContent API service. This repo holds the registry manifest and a standalone stdio implementation.
+
+| Path | What it is |
+| --- | --- |
+| `server.json` | The MCP Registry manifest, pointing at the hosted endpoint |
+| `src/index.ts` | A standalone stdio server, for clients that can't do remote HTTP |
+| `PUBLISHING.md` | How this gets published and listed |
+
+The stdio build is not on npm and isn't needed for normal use. It exists as a fallback for older MCP clients that only support subprocess transport:
+
+```bash
+npm install && npm run build
+SPEEDCONTENT_API_KEY=sc_... node dist/index.js
+```
 
 ## Reselling
 

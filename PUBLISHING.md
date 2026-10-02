@@ -1,74 +1,65 @@
 # Publishing this MCP server
 
-Verified against the live registry docs on 2026-10-01.
+## Current state
 
-The short version: **publish once to npm and the official MCP Registry.** Glama, PulseMCP and mcp.directory crawl that registry, so one publish lands you in four places. Only Smithery and mcp.so need separate submissions.
+Published to the official MCP Registry on 2026-10-02 as a **remote server**:
 
-## One-time setup
-
-These need accounts and can't be automated away.
-
-1. **Create the GitHub repo.** The manifest expects `github.com/seotrader/speedcontent-social-mcp`. Either create it under that name, or change `repository.url` in `server.json` and `package.json` to match wherever it lives.
-
-2. **npm account.** `npm login`. The package name `speedcontent-social-mcp` was free as of 2026-10-01.
-
-3. **Make the workflow a Trusted Publisher.** On npmjs.com → the package → Settings → Publish access → Trusted Publishers → add repository owner `seotrader`, repository `speedcontent-social-mcp`, workflow `publish.yml`.
-
-   This is what produces the provenance attestation. It also matters beyond npm: since **1 May 2026** n8n refuses community nodes published from a local machine, so if you later ship an n8n node the same setup applies.
-
-4. **`NPM_TOKEN` secret.** GitHub repo → Settings → Secrets → Actions → add an npm automation token.
-
-## Publishing
-
-With the above done, a release is one command:
-
-```bash
-git tag v0.1.0 && git push --tags
+```
+io.github.seotrader/speedcontent-social   v0.1.0   active
+→ https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp
 ```
 
-`.github/workflows/publish.yml` then builds, publishes to npm with provenance, and registers with the MCP Registry over GitHub OIDC.
-
-### Doing it by hand instead
-
-```bash
-npm run build
-npm publish --access public
-
-# one-off: install the registry CLI
-brew install mcp-publisher          # or the release tarball
-
-mcp-publisher login github
-mcp-publisher publish
-```
-
-Verify it landed:
+Check it:
 
 ```bash
 curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.seotrader/speedcontent-social"
 ```
 
-Note `mcpName` in `package.json` must stay identical to `name` in `server.json`, and with GitHub auth both must start with `io.github.seotrader/`. A mismatch is the most common publish rejection.
+Free-text search ("speedcontent") lags behind the record for a while after publishing — query the exact name if you want an immediate answer.
 
-## Where it ends up
+## Why remote and not npm
 
-| Directory | How it gets listed | Action needed |
+The registry hosts metadata, not artifacts. A `packages` entry has to point at a real published npm or PyPI package, which means publishing one, keeping its version in step, and asking every user to install it. A `remotes` entry just points at a URL.
+
+Since the API is already a hosted service, the remote route means:
+
+- nothing for users to install
+- tool changes reach everyone on the next deploy, with no upgrade step
+- no npm account, no 2FA dance, no provenance attestation
+- calls land on infrastructure where they can be metered
+
+The npm route stays available if an important client only supports stdio — `remotes` and `packages` can coexist in one manifest.
+
+## Releasing a new version
+
+The server code lives in the API service (`mcp_server.py`), so a tool change ships with a normal Cloud Run deploy. The registry entry doesn't need touching.
+
+Only re-publish here when the manifest itself changes — the URL, the declared headers, the description:
+
+1. Bump `version` in `server.json`
+2. `mcp-publisher login github`
+3. `mcp-publisher validate && mcp-publisher publish`
+
+## Where it gets listed
+
+| Directory | How | Action |
 | --- | --- | --- |
-| **Official MCP Registry** | `mcp-publisher publish` | The one publish above |
-| **Glama** | Auto-indexes from the registry and GitHub, daily | None |
-| **PulseMCP** | Crawls the registry | None |
-| **mcp.directory** | Crawls the registry | None |
-| **Smithery** | Submit at smithery.ai, via dashboard or CLI | One manual submission |
-| **mcp.so** | Submit button on the site, or their GitHub issues | One manual submission |
+| **Official MCP Registry** | `mcp-publisher publish` | ✅ Done |
+| **Glama** | Crawls the registry and GitHub, daily | Automatic |
+| **PulseMCP** | Crawls the registry | Automatic |
+| **mcp.directory** | Crawls the registry | Automatic |
+| **Smithery** | smithery.ai dashboard or CLI | Manual, not done |
+| **mcp.so** | Submit button, or their GitHub issues | Manual, not done |
 | **awesome-mcp-servers** | Community GitHub list | A pull request, optional |
 
-So: one publish, then two short forms.
+## If the stdio fallback ever goes to npm
 
-## Version bumps
+The package name `speedcontent-social-mcp` was unregistered as of 2026-10-01, and `.github/workflows/publish.yml` already publishes with provenance off a version tag. You would need:
 
-Three places have to move together, or the registry rejects the publish:
+1. An npm **granular access token with "bypass 2FA" enabled** — an ordinary automation token is refused with a 403
+2. That token as the `NPM_TOKEN` repo secret
+3. The workflow registered as a Trusted Publisher on the npm package
 
-- `package.json` → `version`
-- `server.json` → `version`
-- `server.json` → `packages[0].version`
+Note the chicken-and-egg: npm won't accept a Trusted Publisher for a package that doesn't exist yet, so the very first publish has to be manual with an OTP.
 
-Then tag and push.
+Then add a `packages` entry to `server.json` alongside `remotes`, keeping `mcpName` in `package.json` identical to `name` in `server.json`.
