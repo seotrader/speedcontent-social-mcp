@@ -1,0 +1,52 @@
+{
+  "name": "speedcontent-social-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.seotrader/speedcontent-social",
+  "description": "MCP server for the SpeedContent Social Post API — generate platform-native social posts that are humanized, AI-detection scored and illustrated.",
+  "license": "MIT",
+  "author": "SpeedContent",
+  "homepage": "https://speedcontent.online",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seotrader/speedcontent-social-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seotrader/speedcontent-social-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "social-media",
+    "content-generation",
+    "linkedin",
+    "instagram",
+    "tiktok",
+    "ai-detection"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "speedcontent-social-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.2.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}
