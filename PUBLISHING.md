@@ -6,7 +6,7 @@ Published to the official MCP Registry on 2026-10-02 as a **remote server**:
 
 ```
 io.github.seotrader/speedcontent-social   v0.1.0   active
-→ https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp
+→ https://speedcontent.online/mcp
 ```
 
 Check it:

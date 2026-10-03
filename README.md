@@ -29,7 +29,7 @@ This is a **remote** server — there is nothing to install. Get an API key at [
 
 ```bash
 claude mcp add --transport http speedcontent-social \
-  https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp \
+  https://speedcontent.online/mcp \
   --header "X-API-Key: sc_your_key_here"
 ```
 
@@ -39,7 +39,7 @@ claude mcp add --transport http speedcontent-social \
 {
   "mcpServers": {
     "speedcontent-social": {
-      "url": "https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp",
+      "url": "https://speedcontent.online/mcp",
       "headers": {
         "X-API-Key": "sc_your_key_here"
       }

@@ -7,11 +7,11 @@
     "url": "https://github.com/seotrader/speedcontent-social-mcp",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://generatecontentwithaiservice-g5zrtckfda-ue.a.run.app/mcp",
+      "url": "https://speedcontent.online/mcp",
       "headers": [
         {
           "name": "X-API-Key",
