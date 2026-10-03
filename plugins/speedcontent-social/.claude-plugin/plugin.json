@@ -1,0 +1,13 @@
+{
+  "name": "speedcontent-social",
+  "version": "0.1.1",
+  "description": "Generate platform-native social posts for LinkedIn, X, Instagram, Facebook, Pinterest, YouTube and TikTok. Each post is humanized and scored against AI detection before it reaches you.",
+  "author": {
+    "name": "SpeedContent",
+    "url": "https://speedcontent.online"
+  },
+  "homepage": "https://speedcontent.online/features/social-media-post-api",
+  "repository": "https://github.com/seotrader/speedcontent-social-mcp",
+  "license": "MIT",
+  "keywords": ["social-media", "content-generation", "ai-detection", "linkedin", "marketing"]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "speedcontent",
+  "description": "SpeedContent tools for AI agents \u2014 social post generation with built-in humanization and AI-detection scoring.",
+  "owner": {
+    "name": "SpeedContent",
+    "url": "https://speedcontent.online"
+  },
+  "plugins": [
+    {
+      "name": "speedcontent-social",
+      "source": "./plugins/speedcontent-social",
+      "description": "Generate platform-native social posts that are humanized and scored against AI detection before you publish."
+    }
+  ]
+}

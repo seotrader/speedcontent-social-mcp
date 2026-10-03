@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "speedcontent-social": {
+      "type": "http",
+      "url": "https://speedcontent.online/mcp",
+      "headers": {
+        "X-API-Key": "${SPEEDCONTENT_API_KEY}"
+      }
+    }
+  }
+}
