@@ -52,9 +52,26 @@ claude mcp add --transport http speedcontent-social \
 
 ## Tools
 
+If you have already written the post, use `score_text` and `humanize_text` — they check and fix your own wording. Use `generate_social_post` when you need a draft written from scratch.
+
+### `score_text`
+
+Score any text against an AI detector. Returns 0–65, where 0 reads as human and above 30 is likely to be flagged. This is the measurement an agent cannot make for itself. **8 credits.**
+
+### `humanize_text`
+
+Rewrite text so it no longer reads as machine-written. Brand names, domains and anything listed in `preserve` are restored verbatim afterwards, because the humanizer rewrites whole sentences and splits names. **1 credit per 20 words**, plus 8 if you pass `score_after`.
+
+| Parameter | Notes |
+| --- | --- |
+| `text` | Required. At least 10 characters. |
+| `preserve` | Exact lines that must survive — a tagline, a call to action, a closing question. |
+| `brand_terms` | Names the humanizer must not alter or split. |
+| `score_after` | Score the result and return it. Adds 8 credits. |
+
 ### `generate_social_post`
 
-Starts a job and returns its id. Generation takes 20–90 seconds; collect the result with `check_social_job`. Costs credits.
+Writes a post from scratch. Starts a job and returns its id; collect the result with `check_social_job`. Costs credits.
 
 | Parameter | Default | Notes |
 | --- | --- | --- |
@@ -64,8 +81,11 @@ Starts a job and returns its id. Generation takes 20–90 seconds; collect the r
 | `language` | `English` | Any language name. |
 | `quantity` | `1` | Up to 10 variations. |
 | `word_count` | per platform | 10–500. LinkedIn 100, YouTube 150, Facebook/Pinterest 75, Instagram/TikTok 50, X 40. |
-| `generate_image` | `true` | Adds 10 credits per post. |
+| `generate_image` | `false` over MCP | Adds 10 credits per post. |
 | `detect_ai` | automatic | Adds 8 credits per post. Automatic means 150+ words only — short posts score unreliably. |
+| `humanize` | automatic | Automatic scores the draft first and humanizes only if it would be flagged, which keeps your wording and saves a credit. |
+| `emoji` | automatic | Off on LinkedIn and YouTube, on elsewhere. |
+| `preserve` | — | Exact lines that must appear verbatim. |
 | `brand_name`, `brand_description`, `brand_tone`, `brand_audience`, `brand_keywords` | — | Optional brand voice. |
 
 ### `check_social_job`
@@ -92,7 +112,7 @@ The live server runs inside the SpeedContent API service. This repo holds the re
 | `src/index.ts` | A standalone stdio server, for clients that can't do remote HTTP |
 | `PUBLISHING.md` | How this gets published and listed |
 
-The stdio build is not on npm and isn't needed for normal use. It exists as a fallback for older MCP clients that only support subprocess transport:
+The stdio build is not on npm and isn't needed for normal use. It exists as a fallback for older MCP clients that only support subprocess transport, and **it carries only the three social-post tools** — `score_text` and `humanize_text` are remote-only:
 
 ```bash
 npm install && npm run build
