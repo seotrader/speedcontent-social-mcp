@@ -170,10 +170,11 @@ server.registerTool(
   {
     title: "Generate a social media post",
     description:
-      "Write a social media post for a given platform and topic. The post is written to " +
-      "that platform's conventions, rewritten to read as human-authored, optionally scored " +
-      "against AI detection, and optionally illustrated with a generated image. " +
-      "Blocks until generation finishes, typically 20-90 seconds. Costs credits.",
+      "Write a social media post from scratch for a given platform and topic. Use this " +
+      "when you do not already have a draft. If you have written the post yourself, " +
+      "prefer score_text and humanize_text, which check and fix your own wording instead " +
+      "of replacing it. Blocks until generation finishes, typically 20-90 seconds. " +
+      "Costs credits.",
     inputSchema: {
       topic: z.string().min(3).describe("What the post should be about."),
       platform: z
@@ -209,6 +210,28 @@ server.registerTool(
           "Score the post against AI detection and retry if it reads as machine-written. " +
             "Adds 8 credits per post. Omit for automatic: runs only at 150+ words, because " +
             "short posts score unreliably.",
+        ),
+      humanize: z
+        .boolean()
+        .optional()
+        .describe(
+          "Rewrite the post to read as human-authored. Omit for automatic: the draft is " +
+            "scored first and humanized only if it would be flagged, which keeps your " +
+            "wording and saves a credit.",
+        ),
+      emoji: z
+        .boolean()
+        .optional()
+        .describe(
+          "Add emoji. Omit for automatic: off on LinkedIn and YouTube, on elsewhere.",
+        ),
+      preserve: z
+        .array(z.string())
+        .optional()
+        .describe(
+          "Exact lines that must appear verbatim — a closing question, a call to action, " +
+            "a tagline. The humanizer rewrites sentences, so anything whose exact wording " +
+            "matters belongs here.",
         ),
       brand_name: z.string().optional().describe("Brand to mention where it reads naturally."),
       brand_description: z.string().optional().describe("What the business does."),
@@ -331,6 +354,84 @@ server.registerTool(
         },
       ],
     };
+  },
+);
+
+server.registerTool(
+  "score_text",
+  {
+    title: "Score text against an AI detector",
+    description:
+      "Check how machine-written a piece of text reads, using an external AI detector. " +
+      "Returns a score from 0 to 65 where 0 reads as human and anything above 30 is " +
+      "likely to be flagged. Use this on text you have already written to find out " +
+      "whether it will pass before publishing — it is a measurement you cannot make " +
+      "yourself. Costs 8 credits per call.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      text: z.string().min(10).describe("The text to score. At least 10 characters."),
+    },
+  },
+  async ({ text }) => {
+    try {
+      const r = await call<{ ai_score: number; flagged: boolean; threshold: number; credits_used: number }>(
+        "/api/v1/detect",
+        { method: "POST", body: JSON.stringify({ text }) },
+      );
+      const verdict = r.flagged
+        ? `above the ${r.threshold} threshold, so this is likely to be flagged as machine-written. Run humanize_text on it.`
+        : "reads as human-written and should pass.";
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `AI detection score: ${r.ai_score} out of 65 — ${verdict}\n\n_Cost: ${r.credits_used} credits._`,
+          },
+        ],
+      };
+    } catch (err) {
+      return { isError: true, content: [{ type: "text" as const, text: (err as Error).message }] };
+    }
+  },
+);
+
+server.registerTool(
+  "humanize_text",
+  {
+    title: "Rewrite text to read as human-authored",
+    description:
+      "Rewrite text so it no longer reads as machine-written, using an external " +
+      "humanizing service. Use this on your own writing when score_text says it would " +
+      "be flagged. Costs 1 credit per 20 words.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      text: z.string().min(10).describe("The text to rewrite. At least 10 characters."),
+      model_type: z
+        .enum(["standard", "advanced"])
+        .optional()
+        .describe(
+          "advanced defeats detectors more reliably but rewrites more aggressively; " +
+            "standard changes less. Defaults to advanced.",
+        ),
+    },
+  },
+  async ({ text, model_type }) => {
+    try {
+      const r = await call<{ humanized_text: string; words_processed: number; credits_used: number }>(
+        "/api/v1/humanize",
+        { method: "POST", body: JSON.stringify({ text, model_type: model_type ?? "advanced" }) },
+      );
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `${r.humanized_text}\n\n_${r.words_processed} words, ${r.credits_used} credits._`,
+          },
+        ],
+      };
+    } catch (err) {
+      return { isError: true, content: [{ type: "text" as const, text: (err as Error).message }] };
+    }
   },
 );
 

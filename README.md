@@ -112,7 +112,7 @@ The live server runs inside the SpeedContent API service. This repo holds the re
 | `src/index.ts` | A standalone stdio server, for clients that can't do remote HTTP |
 | `PUBLISHING.md` | How this gets published and listed |
 
-The stdio build is not on npm and isn't needed for normal use. It exists as a fallback for older MCP clients that only support subprocess transport, and **it carries only the three social-post tools** — `score_text` and `humanize_text` are remote-only:
+The stdio build is not on npm and isn't needed for normal use. It exists as a fallback for older MCP clients that only support subprocess transport, and carries the same five tools:
 
 ```bash
 npm install && npm run build
